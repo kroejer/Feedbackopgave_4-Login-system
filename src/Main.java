@@ -1,4 +1,6 @@
 import java.util.Scanner;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 
 void main() {
     Scanner input = new Scanner(System.in);
@@ -7,17 +9,12 @@ void main() {
     String[] usernames = {"Oliver", "Jonas", "Valdemar", "Kasper"};
     String[] passwords = {"pass1", "pass2", "pass3", "pass4"};
     String username = "";
-    String password = "";
+    int usernameIndex;
 
     username = inputUsername(input);
+    usernameIndex = validateUsername(usernames, username);
 
-    if (validateUsername(usernames, username)) {
-
-        loginAttempt(input, timeFormat, usernames, username, passwords, password);
-
-    } else {
-        System.out.println("Ukendt brugernavn!");
-    }
+    loginAttempt(input, timeFormat, usernameIndex, username, passwords);
 
 }
 
@@ -27,13 +24,13 @@ static String inputUsername(Scanner input) {
     return username;
 }
 
-static boolean validateUsername(String[] usernames, String username) {
+static int validateUsername(String[] usernames, String username) {
     for (int i = 0; i < usernames.length; i++) {
         if (username.equalsIgnoreCase(usernames[i])) {
-            return true;
+            return i;
         }
     }
-    return false;
+    return -1;
 }
 
 static String inputPassword(Scanner input) {
@@ -42,26 +39,30 @@ static String inputPassword(Scanner input) {
     return password;
 }
 
-static boolean validatePassword(String[] passwords, String password, String[] usernames, String username) {
-
-    for (int i = 0; i < passwords.length; i++) {
-        if (password.equals(passwords[i]) && username.equalsIgnoreCase(usernames[i])) {
-            return true;
+static boolean validatePassword(String[] passwords, String password, int usernameIndex) {
+    if(usernameIndex == -1){
+        return false;
+    }else{
+        for (int i = 0; i < passwords.length; i++) {
+            if (passwords[usernameIndex].equals(password)) {
+                return true;
+            }
         }
     }
     return false;
 }
 
-static void loginAttempt(Scanner input, DateTimeFormatter timeFormat, String[] usernames, String username, String[] passwords, String password) {
+static void loginAttempt(Scanner input, DateTimeFormatter timeFormat, int usernameIndex, String username, String[] passwords) {
     int loginAttempts = 3;
-    while (loginAttempts > 0 && !validatePassword(passwords, password, usernames, username)) {
+    String password = "";
+    while (loginAttempts > 0) {
 
         password = inputPassword(input);
-        if (validatePassword(passwords, password, usernames, username)) {
+        if (validatePassword(passwords, password, usernameIndex)) {
             System.out.println("Velkommen " + username + "! Login kl. " + LocalTime.now().format(timeFormat));
             break;
         } else {
-            System.out.println("Forkert adgangskode!");
+            System.out.println("Forkert brugernavn eller adgangskode!");
             loginAttempts--;
             if (loginAttempts != 0) {
                 System.out.println("Du har " + loginAttempts + " forsøg tilbage");
@@ -69,7 +70,7 @@ static void loginAttempt(Scanner input, DateTimeFormatter timeFormat, String[] u
         }
     }
     if (loginAttempts == 0) {
-        System.out.println("Du har brugt alle forsøg. Kontoen er nu låst!");
+        System.out.println("Du har brugt alle forsøg. Lukker ned");
     }
 
 }
